@@ -20,7 +20,6 @@ def load(path: str):
     questions, types = [], []
     with open(path) as file:
         for line in file.readlines():
-            print(line)
             tokens = line.split()
             types.append(tokens[0])
             questions.append(parse_tokens(tokens[1:]))
