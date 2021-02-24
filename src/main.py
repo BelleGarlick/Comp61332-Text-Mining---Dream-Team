@@ -1,5 +1,6 @@
-from preprocessing import load
+from preprocessing.reader import load
 
 
 if __name__ == "__main__":
     training_data = load("../data/test.txt")
+
