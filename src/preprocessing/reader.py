@@ -9,8 +9,6 @@ def load(path: str):
     function reads each line, splits up the tokens and extracts the first token from the line placing it in the types
     list.
 
-    # TODO Pre-process the word embeddings.
-
     Args:
         path: A path in the format of the string to the document file.
 
@@ -24,8 +22,22 @@ def load(path: str):
         for line in file.readlines():
             tokens = line.split()
             types.append(tokens[0])
-            questions.append(" ".join(tokens[1:]))
-
-    # TODO pre-process data
+            questions.append(parse_tokens(tokens[1:]))
 
     return questions, types
+
+
+def parse_tokens(tokens):
+    # TODO How to deal with:
+    #       LOC:city What city is also known as `` The Gateway to the West '' ?
+    #       ','
+    parsed_tokens = []
+    for token in tokens:
+        if token == "'s":
+            token = "is"
+        if token == "?":
+            continue
+        parsed_tokens.append(token.lower())
+
+    return parsed_tokens
+
