@@ -1,3 +1,4 @@
+from preprocessing.tokenisation.tokeniser import parse_tokens
 
 
 def load(path: str):
@@ -22,22 +23,8 @@ def load(path: str):
         for line in file.readlines():
             tokens = line.split()
             types.append(tokens[0])
-            questions.append(parse_tokens(tokens[1:]))
+            questions.append(tokens[1:])
 
     return questions, types
 
-
-def parse_tokens(tokens):
-    # TODO How to deal with:
-    #       LOC:city What city is also known as `` The Gateway to the West '' ?
-    #       ','
-    parsed_tokens = []
-    for token in tokens:
-        if token == "'s":
-            token = "is"
-        if token == "?":
-            continue
-        parsed_tokens.append(token.lower())
-
-    return parsed_tokens
 
