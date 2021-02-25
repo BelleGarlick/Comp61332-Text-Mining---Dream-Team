@@ -1,4 +1,4 @@
-from preprocessing.tokenisation.tokeniser import parse_tokens
+from src.preprocessing.tokenisation.tokeniser import parse_tokens
 
 
 def load(path: str):
