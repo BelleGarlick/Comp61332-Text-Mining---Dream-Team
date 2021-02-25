@@ -1,5 +1,6 @@
-from preprocessing import load, parse_tokens
-
+from preprocessing import load, parse_tokens, Config
+import sys
+import argparse
 
 # Rules used during tokenisation.
 tokenisation_rules = {
@@ -17,8 +18,16 @@ tokenisation_rules = {
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train', action='store_true', help='Run the code to train a model')
+    parser.add_argument('--test', action='store_true', help='Run the code to test a model')
+    parser.add_argument('--config', nargs=1)
+    args = parser.parse_args(sys.argv[1:])
+    config = Config.from_config_file(args.config[0])
+
+    # TODO: Handle the case when the argument is --test instead of --train
     # Load the dataset
-    questions, classifications = load("../data/train.txt")
+    questions, classifications = load(config.path_train)
 
     # Map questions to tokenised questions
     tokenised_questions = list(map(lambda x: parse_tokens(x, tokenisation_rules), questions))

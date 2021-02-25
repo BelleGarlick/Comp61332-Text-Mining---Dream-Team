@@ -14,6 +14,8 @@ class ConfigurationTypeMismatch(Exception):
 @dataclass
 class Config:
     # TODO: add more config params as required and parse them
+    path_train: str
+    path_test: str
     epochs: int
     early_stopping: int
     lr: float
@@ -33,7 +35,7 @@ class Config:
         ensemble_configs = [Config.from_config_file(ensemble_config_path) for ensemble_config_path in ensemble_config_paths]
 
         try:
-            return Config(int(config["epochs"]), int(config["early_stopping"]), float(config["lr"]),
+            return Config(config["path_train"], config["path_test"], int(config["epochs"]), int(config["early_stopping"]), float(config["lr"]),
                           config.get("path_eval_result"), ensemble_configs)
         except KeyError as e:
             raise MissingConfigurationParam(e)
