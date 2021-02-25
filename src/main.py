@@ -1,5 +1,7 @@
 from preprocessing import load, parse_tokens
 
+
+# Rules used during tokenisation.
 tokenisation_rules = {
     "TOKENISE_QUOTES": True,
     "TOKENISE_NUMBERS": True,
@@ -15,9 +17,12 @@ tokenisation_rules = {
 
 
 if __name__ == "__main__":
-
+    # Load the dataset
     questions, classifications = load("../data/train.txt")
+
+    # Map questions to tokenised questions
     tokenised_questions = list(map(lambda x: parse_tokens(x, tokenisation_rules), questions))
 
+    # Display the pre and post tokenised questions
     for i, question in enumerate(questions):
         print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n")
