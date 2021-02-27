@@ -13,6 +13,8 @@ class ConfigParserTest(TestCase):
         with open("testfiles/mock-config.ini", "w") as mock_config_file:
             mock_config_file.writelines([
                 "[main]\n",
+                "path_train = ../data/train.txt\n",
+                "path_test = ../data/test.txt\n",
                 "epochs = 10\n" if not bad else "",
                 "lr = 0.005\n",
                 "early_stopping = 20\n",
