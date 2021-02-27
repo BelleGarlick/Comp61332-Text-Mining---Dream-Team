@@ -47,6 +47,9 @@ TOKENISE_YEAR:
     
 TOKENISE_COMMA_SEPERATED_NUMBERS:
     Often large numbers are seperated by a comma, this function will merge those tokens in two one tag #NUM#
+    
+TOKENISE_LOWER_CASE:
+    Lower case text.
 """
 DEFAULT_RULES = {
     "TOKENISE_QUOTES": True,
@@ -58,7 +61,8 @@ DEFAULT_RULES = {
     "TOKENISE_URLS": True,
     "TOKENISE_MONEY": True,
     "TOKENISE_YEAR": True,
-    "TOKENISE_COMMA_SEPERATED_NUMBERS": True
+    "TOKENISE_COMMA_SEPERATED_NUMBERS": True,
+    "TOKENISE_LOWER_CASE": True
 }
 
 
@@ -87,7 +91,8 @@ def parse_tokens(tokens, rules: dict = None) -> List[str]:
     rules = fill_rules(rules)
 
     # Lower all chars
-    tokens = [token.lower() for token in tokens]
+    if rules["TOKENISE_LOWER_CASE"]:
+        tokens = [token.lower() for token in tokens]
 
     if rules["TOKENISE_STOPWORDS"]:
         tokens = replace_stopwords(tokens, TOKEN_STOPWORDS)

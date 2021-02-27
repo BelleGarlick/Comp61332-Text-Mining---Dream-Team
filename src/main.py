@@ -12,7 +12,8 @@ tokenisation_rules = {
     "TOKENISE_URLS": True,
     "TOKENISE_MONEY": True,
     "TOKENISE_YEAR": True,
-    "TOKENISE_COMMA_SEPERATED_NUMBERS": True
+    "TOKENISE_COMMA_SEPERATED_NUMBERS": True,
+    "TOKENISE_LOWER_CASE": True
 }
 
 
