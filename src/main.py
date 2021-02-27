@@ -1,5 +1,9 @@
 from preprocessing.reader import load
+from preprocessing.embedding import embed
+
 
 if __name__ == "__main__":
-    training_data = load("../data/test.txt")
-    print(training_data)
+    questions, answers = load("../data/test.txt")
+    embedding = embed(questions)
+    
+    print(questions[0], answers[0], embedding[0])
