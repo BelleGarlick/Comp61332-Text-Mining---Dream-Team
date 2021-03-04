@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+
 def load_glove(path):
     """
     Load pretrained GloVe word embedding from specified path.
@@ -49,12 +51,13 @@ def embed(sentences):
         for word in sentence:
             embeding = []
             try:
-                embeding.append(glove[word])
+                embeding.append(torch.as_tensor(glove[word]))
             except KeyError:
-                embeding.append(np.random.normal(scale=0.6, size=(emb_dim, )))
+                embeding.append(torch.as_tensor( np.random.normal(scale=0.6, size=(emb_dim, )) ))
+        torch_embeding =  torch.cat(embeding, dim=1)
         # TODO Hyperparamater what to do with special tags specified in the tokenizer 
         # Either a random array, array of zeros or use the word in the tag i.e. for "#date#" use "date"
-        embedings.append(embeding)
+        embedings.append(torch_embeding)
 
     return embedings
 
