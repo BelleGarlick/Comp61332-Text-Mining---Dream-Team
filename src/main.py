@@ -39,4 +39,4 @@ if __name__ == "__main__":
         print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n")
 
     embedding = embed(questions)
-    print(questions[0], classifications[0], embedding[0])
+    print(f'{questions[0]}\n{classifications[0]}\n{embedding[0].size()}\n{embedding[0]}')
