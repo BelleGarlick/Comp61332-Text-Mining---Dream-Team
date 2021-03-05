@@ -1,6 +1,9 @@
-from preprocessing import load, parse_tokens, Config
+from preprocessing import load, parse_tokens
 import sys
 import argparse
+
+from utils.config import Config
+from utils.one_hot_encoding import OneHotEncoder
 
 # Rules used during tokenisation.
 tokenisation_rules = {
@@ -32,6 +35,9 @@ if __name__ == "__main__":
     # Map questions to tokenised questions
     tokenised_questions = list(map(lambda x: parse_tokens(x, tokenisation_rules), questions))
 
+    one_hot_encoder = OneHotEncoder()
+    one_hot_encoding = one_hot_encoder.encode(tokenised_questions, update_corpus=True)
+
     # Display the pre and post tokenised questions
     for i, question in enumerate(questions):
-        print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n")
+        print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n{one_hot_encoding[i].shape}\n")
