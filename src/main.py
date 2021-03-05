@@ -1,8 +1,9 @@
-from preprocessing import load, parse_tokens, Config
-from preprocessing.embedding import embed
-
-import sys
 import argparse
+import sys
+from sentence_classifier.preprocessing.config import Config
+from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_tokens
+from sentence_classifier.preprocessing.reader import load
+from sentence_classifier.preprocessing.embedding import embed
 
 # Rules used during tokenisation.
 tokenisation_rules = {

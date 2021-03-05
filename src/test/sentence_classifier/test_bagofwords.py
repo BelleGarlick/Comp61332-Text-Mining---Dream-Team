@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.preprocessing.bagofwords import BagOfWords
+from sentence_classifier.preprocessing.bagofwords import BagOfWords
 from typing import List
 import numpy as np
 
