@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+
 def load_glove(path):
     """
     Load pretrained GloVe word embedding from specified path.
@@ -16,7 +17,7 @@ def load_glove(path):
         A tuple of the word embedding dictionary and an integer size of each word embedding.
     """
     words, vectors, word2idx, idx = [], [], {}, 0
-    with open (path) as f:
+    with open(path) as f:
         for l in f:
             line = l.split()
             word = line[0]
@@ -30,6 +31,7 @@ def load_glove(path):
 
     return glove, vectors[0].shape[0]
 
+
 def embed(sentences): 
     """
     Embeds the provided list of sentences into the GloVe embedding space.
@@ -42,27 +44,26 @@ def embed(sentences):
         sentences: A list where each item is sentence represented by a list of words.
 
     Returns:
-        An embeddings list of lists for each sentence with a numpy arrray representing each word.
+        An embeddings list of lists for each sentence with a numpy array representing each word.
     """
     glove, emb_dim = load_glove("../data/glove.small.txt")
-    embedings = []
+    embeddings = []
 
     for sentence in sentences:
+        sentence_len = len(sentence)
+        embedding = []
         for word in sentence:
-            embeding = []
             try:
-                embeding.append(torch.as_tensor(glove[word]))
+                embedding.append(torch.as_tensor(glove[word]))
             except KeyError:
-                embeding.append(torch.as_tensor( np.random.normal(scale=0.6, size=(emb_dim, )) ))
-        torch_embeding =  torch.cat(embeding, dim=1)
-        # TODO Hyperparamater what to do with special tags specified in the tokenizer 
+                embedding.append(torch.as_tensor( np.random.normal(scale=0.6, size=(emb_dim,)) ))
+        torch_embeding = torch.cat(embedding, dim=0)
+        # TODO Hyperparamater what to do with special tags specified in the tokenizer
         # Either a random array, array of zeros or use the word in the tag i.e. for "#date#" use "date"
-        embedings.append(torch_embeding)
+        embeddings.append(torch.reshape(torch_embeding, (emb_dim, sentence_len)))
 
-    return embedings
+    return embeddings
 
     
-    
-
 
 # 00 out or add #data as date, hyperparamarter
