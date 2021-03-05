@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, Optional, Dict
 
 
 """
@@ -21,7 +21,7 @@ UNKNOWN_TOKEN = "#UNK#"
 
 
 class OneHotEncoder:
-    def __init__(self):
+    def __init__(self, mapping: Optional[Dict] = None):
         """
         Initialise the one hot encoder class.
 
@@ -31,6 +31,7 @@ class OneHotEncoder:
         self.corpus = {
             UNKNOWN_TOKEN: 0
         }
+        self.mapping = mapping if mapping is not None else {}  # TODO: verify how self.mapping is used
 
     def encode(self, data: List[List[str]], update_corpus=False):
         """

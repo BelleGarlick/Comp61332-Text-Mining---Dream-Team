@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.preprocessing.config import Config, MissingConfigurationParam
+from sentence_classifier.utils.config import Config, MissingConfigurationParam
 import os
 import shutil
 
