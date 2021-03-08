@@ -93,7 +93,7 @@ class OneHotEncoder:
         """
         for question in data:
             for token in question:
-                if token not in self.mapping:
+                if token not in self.corpus:
                     # We can get the new index simply by choosing the current length of the mapping dictionary
                     #     e.g. If we have no items in the dict, then the first item will be at index 0.
-                    self.mapping[token] = len(self.mapping)
+                    self.corpus[token] = len(self.corpus)
