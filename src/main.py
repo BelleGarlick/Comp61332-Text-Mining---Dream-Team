@@ -1,9 +1,11 @@
-from preprocessing import load, parse_tokens
-import sys
 import argparse
+import sys
+from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_tokens
+from sentence_classifier.preprocessing.reader import load
+from sentence_classifier.preprocessing.embedding import embed
 
-from utils.config import Config
-from utils.one_hot_encoding import OneHotEncoder
+from sentence_classifier.utils.config import Config
+from sentence_classifier.utils.one_hot_encoding import OneHotEncoder
 
 # Rules used during tokenisation.
 tokenisation_rules = {
@@ -40,4 +42,7 @@ if __name__ == "__main__":
 
     # Display the pre and post tokenised questions
     for i, question in enumerate(questions):
-        print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n{one_hot_encoding[i].shape}\n")
+        print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n")
+
+    embedding = embed(questions)
+    print(f'{questions[0]}\n{classifications[0]}\n{embedding[0].size()}\n{embedding[0]}')

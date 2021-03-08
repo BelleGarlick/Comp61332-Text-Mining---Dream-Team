@@ -1,6 +1,3 @@
-from preprocessing.tokenisation.tokeniser import parse_tokens
-
-
 def load(path: str):
     """
     Load questions and questions types from a path.
