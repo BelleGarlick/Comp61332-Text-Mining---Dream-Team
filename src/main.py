@@ -23,12 +23,13 @@ tokenisation_rules = {
 
 
 if __name__ == "__main__":
+    #Command line arguments parsing.
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', action='store_true', help='Run the code to train a model')
     parser.add_argument('--test', action='store_true', help='Run the code to test a model')
-    parser.add_argument('--config', nargs=1)
+    parser.add_argument('--config', nargs='?', default='../data/config.ini')
     args = parser.parse_args(sys.argv[1:])
-    config = Config.from_config_file(args.config[0])
+    config = Config.from_config_file(args.config)
 
     # TODO: Handle the case when the argument is --test instead of --train
     # Load the dataset
