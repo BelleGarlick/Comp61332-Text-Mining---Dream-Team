@@ -1,12 +1,16 @@
-from dataclasses import dataclass
-from typing import List
-import numpy as np
+from torch import nn
+from torch import sum
+
+import torch
 
 
-@dataclass
-class BagOfWords:
-    sentence_representation: np.ndarray
+class BagOfWords(nn.Module):
 
-    @staticmethod
-    def from_word_embeddings(word_embeddings: List[np.ndarray]) -> 'BagOfWords':
-        return BagOfWords(sum(word_embeddings) / len(word_embeddings))
+    def __init__(self):
+        super(BagOfWords, self).__init__()
+
+    def forward(self, x: torch.Tensor):
+        num_words, _ = x.size()
+        x = sum(x, 0) / num_words  # sums the cols of tensor x
+
+        return x
