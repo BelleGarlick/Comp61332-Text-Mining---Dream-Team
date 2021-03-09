@@ -31,22 +31,27 @@ def load_glove(path):
 
     return glove, vectors[0].shape[0]
 
-
-def embed(sentences): 
+def embed(sentences, embedding_path): 
     """
     Embeds the provided list of sentences into the GloVe embedding space.
 
     Given a list of sentences, represented by an array of words, convert each word into their respective 
-    Numpy array in the GloVe embedding space. Replacing words that are missing from the specified pretrained 
-    word embedding with a random Numpy array.
+    Numpy array in the GloVe embedding space imported from the specfied path location. Replacing words that are missing 
+    from the specified pretrained word embedding with a random Numpy array. Alternatively using all random Numpy arrays 
+    if None is passed as the embedding_path.
 
     Args:
         sentences: A list where each item is sentence represented by a list of words.
-
+        embedding_path: the path to the pretrained embedding file or None. Sets the embedding to random
+        intiliastion if None is provided as the embedding_path.
     Returns:
         An embeddings list of lists for each sentence with a numpy array representing each word.
     """
-    glove, emb_dim = load_glove("../data/glove.small.txt")
+    if embedding_path is not None:
+        glove, emb_dim = load_glove(embedding_path)
+    else:
+        glove={}
+        emb_dim=300
     embeddings = []
 
     for sentence in sentences:
@@ -54,16 +59,16 @@ def embed(sentences):
         embedding = []
         for word in sentence:
             try:
-                embedding.append(torch.as_tensor(glove[word]))
+                word_embeding = glove[word]
             except KeyError:
-                embedding.append(torch.as_tensor( np.random.normal(scale=0.6, size=(emb_dim,)) ))
-        torch_embeding = torch.cat(embedding, dim=0)
+                word_embeding = np.random.normal(scale=0.6, size=(emb_dim,))
+                glove[word] = word_embeding
+            embedding.append(torch.as_tensor(word_embeding))
+        torch_embedding = torch.cat(embedding, dim=0)
         # TODO Hyperparamater what to do with special tags specified in the tokenizer
         # Either a random array, array of zeros or use the word in the tag i.e. for "#date#" use "date"
-        embeddings.append(torch.reshape(torch_embeding, (emb_dim, sentence_len)))
+        embeddings.append(torch.reshape(torch_embedding, (emb_dim, sentence_len)))
 
     return embeddings
 
     
-
-# 00 out or add #data as date, hyperparamarter
