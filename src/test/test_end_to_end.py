@@ -142,4 +142,6 @@ class EndToEndTest(TestCase):
 
             correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
 
-        self.assertTrue(correct_predictions/len(test_questions) >= 0.5)  # i.e assert at least 50% accuracy
+        accuracy = correct_predictions/len(test_questions)
+        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
