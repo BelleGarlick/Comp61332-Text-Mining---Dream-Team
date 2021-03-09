@@ -59,9 +59,11 @@ def embed(sentences, embedding_path):
         embedding = []
         for word in sentence:
             try:
-                embedding.append(torch.as_tensor(glove[word]))
+                word_embeding = glove[word]
             except KeyError:
-                embedding.append(torch.as_tensor( np.random.normal(scale=0.6, size=(emb_dim,)) ))
+                word_embeding = np.random.normal(scale=0.6, size=(emb_dim,))
+                glove[word] = word_embeding
+            embedding.append(torch.as_tensor(word_embeding))
         torch_embedding = torch.cat(embedding, dim=0)
         # TODO Hyperparamater what to do with special tags specified in the tokenizer
         # Either a random array, array of zeros or use the word in the tag i.e. for "#date#" use "date"
