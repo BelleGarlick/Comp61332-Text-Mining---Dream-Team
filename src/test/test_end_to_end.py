@@ -47,6 +47,7 @@ class TestWordEmbeddings(nn.Module):
         return torch.LongTensor([self.idx_for_word(word) for word in sentence])
 
     def forward(self, sentence: List[str]):
+        # TODO: this needs to take a 2d IntTensor/LongTensor as input with dimensions (batch_size, padded_sentence_length)
         x = self.embedding_layer(self.sentence_to_idx_tensor(sentence))
         return x
 
@@ -66,6 +67,7 @@ class TestModel(nn.Module):
 
         return x
 
+
 class OneHotLabels:
 
     def __init__(self, labels: Iterable[str]):
@@ -82,18 +84,15 @@ class OneHotLabels:
 
 class EndToEndTest(TestCase):
 
-
     def generate_training_batch(self, questions: List[str]) -> Tensor:
         """
         Given a list of questions, returns a Tensor of the questions stacked and padded
         :param questions:
         :return:
         """
+        # TODO: need to convert each question for List[str] to List[int] i.e list of corresponding indexes in the vocabulary
         return pad_sequence(questions)
 
-
-    def generate_one_hot_label(self, label: str, set_of_labels: Iterable[str]) -> Tensor:
-        pass
 
     def test_end_to_end(self):
 
@@ -101,7 +100,6 @@ class EndToEndTest(TestCase):
 
         torch.manual_seed(42)
 
-        # We can also inspect its parameters using its state_dict
         print(test_model.state_dict())
 
         lr = 1e-1
@@ -121,8 +119,6 @@ class EndToEndTest(TestCase):
             question_1 = questions[0]
             labels_1 = labels[0]
 
-            # No more manual prediction!
-            # yhat = a + b * x_tensor
             yhat = test_model(parse_tokens(question_1))
 
             loss = loss_fn(one_hot_labels.one_hot_vec_for(labels_1), yhat)
