@@ -45,5 +45,10 @@ if __name__ == "__main__":
     for i, question in enumerate(questions):
         print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n")
 
-    embedding = embed(questions)
+    #Using the pretrained GloVe embedding
+    embedding = embed(questions, "../data/glove.small.txt")
     print(f'{questions[0]}\n{classifications[0]}\n{embedding[0].size()}\n{embedding[0]}')
+
+    #Using the randomally intilised embeddings
+    rand_embedding = embed(questions, None)
+    print(f'{questions[0]}\n{classifications[0]}\n{rand_embedding[0].size()}\n{rand_embedding[0]}')
