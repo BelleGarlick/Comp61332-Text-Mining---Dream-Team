@@ -24,4 +24,32 @@ def load(path: str):
 
     return questions, types
 
+def load_pretrained(path):
+    """
+    Load pretrained GloVe word embedding from specified path.
+
+    Given a path this function open, reads and creates a dictionary that converts each word into 
+    a Tensor array of the respective word embedding. Also extracts the size of these word embeddings
+    to be use in filling in missing embeddings.
+
+    Args:
+        path: A path in the format of the string to the embedding file.
+
+    Returns:
+        A tuple of the word embedding dictionary and an integer size of each word embedding.
+    """
+    words, vectors, word2idx, idx = [], [], {}, 0
+    with open(path) as f:
+        for l in f:
+            line = l.split()
+            word = line[0]
+            words.append(word)
+            word2idx[word] = idx
+            idx+=1
+            vect = np.array(line[1:]).astype(np.float)
+            vectors.append(vect)
+    
+    glove = {w: vectors[word2idx[w]] for w in words}
+
+    return glove, vectors[0].shape[0]
 
