@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 
 
-class ConfigParserTest(TestCase):
+class BagOfWordsTest(TestCase):
 
     @staticmethod
     def one_hot_encode(vocab: List[str], sentence: List[str]) -> List[np.ndarray]:
