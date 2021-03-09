@@ -1,11 +1,13 @@
 import argparse
 import sys
-from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_tokens
-from sentence_classifier.preprocessing.reader import load
-from sentence_classifier.preprocessing.embedding import embed
+
+from torch.utils import data
 
 from sentence_classifier.utils.config import Config
 from sentence_classifier.utils.one_hot_encoding import OneHotEncoder
+
+from sentence_classifier.preprocessing.dataloading import DatasetQuestions
+from torch.utils.data import DataLoader
 
 # Rules used during tokenisation.
 tokenisation_rules = {
@@ -33,22 +35,16 @@ if __name__ == "__main__":
 
     # TODO: Handle the case when the argument is --test instead of --train
     # Load the dataset
-    questions, classifications = load(config.path_train)
+    train_dataset = DatasetQuestions(config.path_train, tokenisation_rules=tokenisation_rules)
+    
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
 
-    # Map questions to tokenised questions
-    tokenised_questions = list(map(lambda x: parse_tokens(x, tokenisation_rules), questions))
+    print(train_loader)
 
-    one_hot_encoder = OneHotEncoder()
-    one_hot_encoding = one_hot_encoder.encode(tokenised_questions, update_corpus=True)
+    for emb_data_point in train_loader:
+        print(emb_data_point)
 
-    # Display the pre and post tokenised questions
-    for i, question in enumerate(questions):
-        print(f"{question}\n{tokenised_questions[i]}\n{classifications[i]}\n")
+    print(train_dataset.longest_sequence)
 
-    #Using the pretrained GloVe embedding
-    embedding = embed(questions, "../data/glove.small.txt")
-    print(f'{questions[0]}\n{classifications[0]}\n{embedding[0].size()}\n{embedding[0]}')
-
-    #Using the randomally intilised embeddings
-    rand_embedding = embed(questions, None)
-    print(f'{questions[0]}\n{classifications[0]}\n{rand_embedding[0].size()}\n{rand_embedding[0]}')
+    # one_hot_encoder = OneHotEncoder()
+    # one_hot_encoding = one_hot_encoder.encode(tokenised_questions, update_corpus=True)
