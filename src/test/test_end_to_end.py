@@ -8,7 +8,7 @@ from torch.nn.utils.rnn import pad_sequence
 import torch
 import numpy as np
 
-from typing import List, Iterable
+from typing import List, Iterable, Dict
 
 from sentence_classifier.classifier.classifier_nn import ClassifierNN
 from sentence_classifier.preprocessing.bagofwords import BagOfWords
@@ -71,15 +71,22 @@ class TestModel(nn.Module):
 class OneHotLabels:
 
     def __init__(self, labels: Iterable[str]):
-        self.label_dict = {}
+        self.label_dict: Dict[str, int] = {}
+
         for idx, label in enumerate(set(labels)):
             self.label_dict[label] = idx
 
-    def one_hot_vec_for(self, label: str):
+    def one_hot_vec_for(self, label: str) -> torch.LongTensor:
         vec = np.zeros(len(self.label_dict))
         pos = self.label_dict[label]
         vec[pos] = 1
         return torch.LongTensor(vec)
+
+    def idx_for_label(self, label: str) -> int:
+        return self.label_dict[label]
+
+    def label_for_idx(self, idx: int) -> str:
+        return list(self.label_dict.keys())[idx]
 
 
 class EndToEndTest(TestCase):
@@ -93,37 +100,48 @@ class EndToEndTest(TestCase):
         # TODO: need to convert each question for List[str] to List[int] i.e list of corresponding indexes in the vocabulary
         return pad_sequence(questions)
 
-
     def test_end_to_end(self):
+        torch.manual_seed(42)
 
         test_model = TestModel()
 
-        torch.manual_seed(42)
-
-        print(test_model.state_dict())
-
         lr = 1e-1
-        n_epochs = 1000
-
         loss_fn = nn.NLLLoss(reduction="mean")
         optimizer = torch.optim.SGD(test_model.parameters(), lr=lr)
 
         training_data_file_path = "../data/train.txt"
+        questions, labels = load(training_data_file_path)
+        one_hot_labels = OneHotLabels(labels)
 
-        for epoch in range(n_epochs):
-            test_model.train()
+        epochs = 10
+        for epoch in range(epochs):
+            for count in range(len(questions)):
+                test_model.train()
 
-            questions, labels = load(training_data_file_path)
-            one_hot_labels = OneHotLabels(labels)
+                question = questions[count]
+                label = labels[count]
 
-            question_1 = questions[0]
-            labels_1 = labels[0]
+                yhat = test_model(parse_tokens(question))
 
-            yhat = test_model(parse_tokens(question_1))
+                loss = loss_fn(yhat.reshape(1, 50), torch.LongTensor([one_hot_labels.idx_for_label(label)]))
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
 
-            loss = loss_fn(one_hot_labels.one_hot_vec_for(labels_1), yhat)
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+        # do a test on the trained model (might not always work but hopefully should always work with the random seed)
+        test_dataset_file_path = "../data/test.txt"
+        test_questions, test_labels = load(test_dataset_file_path)
 
-        print(test_model.state_dict())
+        correct_predictions = 0
+        for count in range(len(test_questions)):
+            test_question = questions[count]
+            test_label = labels[count]
+
+            predicted_log_probabilities = test_model(parse_tokens(test_question))
+            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
+
+            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
+
+        accuracy = correct_predictions/len(test_questions)
+        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
