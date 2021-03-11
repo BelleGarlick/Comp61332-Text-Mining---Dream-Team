@@ -44,7 +44,7 @@ class TestWordEmbeddings(nn.Module):
             return self.word_idx_dict["#UNK#"]
 
     def sentence_to_idx_tensor(self, sentence: List[str]) -> Tensor:
-        return torch.LongTensor([self.idx_for_word(word) for word in sentence]).resize(len(sentence), 1)
+        return torch.LongTensor([self.idx_for_word(word) for word in sentence]).reshape(len(sentence), 1)
 
     def forward(self, sentence: List[str]):
         # TODO: this needs to take a 2d IntTensor/LongTensor as input with dimensions (batch_size, padded_sentence_length)
