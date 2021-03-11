@@ -1,5 +1,5 @@
 import torch.nn as nn
-import torch.nn.functional as F
+from torch import sigmoid
 from torch.tensor import Tensor
 
 from typing import Optional
@@ -19,11 +19,11 @@ class ClassifierNN(nn.Module):
 
     def forward(self, x: Tensor):
         x = self.fc1(x)
-        x = F.sigmoid(x)
+        x = sigmoid(x)
         x = self.fc2(x)
-        x = F.sigmoid(x)
+        x = sigmoid(x)
         x = self.fc3(x)
-        x = F.log_softmax(x)
+        x = nn.functional.log_softmax(x, dim=1)
 
         return x
 

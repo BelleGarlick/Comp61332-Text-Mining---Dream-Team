@@ -1,8 +1,6 @@
 from unittest import TestCase
 from torch import nn
-from torch.tensor import Tensor
-from torch.nn import Embedding
-from torch import FloatTensor
+
 
 import torch
 import numpy as np
@@ -116,7 +114,6 @@ class EndToEndTest(TestCase):
                               training_labels[curr_index:curr_index+batch_size])
                 curr_index += batch_size
                 yield next_batch
-
 
     def test_end_to_end(self):
         torch.manual_seed(42)
@@ -253,4 +250,3 @@ class EndToEndTest(TestCase):
         accuracy = correct_predictions / len(test_questions)
         print(f'End-to-end test accuracy: {accuracy * 100}%')
         self.assertTrue(accuracy >= 0.35)  # i.e assert at least 35% accuracy (due to frozen and random word-embeddings)
-
