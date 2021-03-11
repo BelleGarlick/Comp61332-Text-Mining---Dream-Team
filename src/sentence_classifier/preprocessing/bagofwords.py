@@ -10,7 +10,7 @@ class BagOfWords(nn.Module):
         super(BagOfWords, self).__init__()
 
     def forward(self, x: torch.Tensor):
-        num_words, _ = x.size()
+        num_words, batch_size, embedding_length = x.size()
         x = sum(x, 0) / num_words  # sums the cols of tensor x
 
         return x
