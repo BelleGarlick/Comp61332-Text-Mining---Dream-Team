@@ -35,16 +35,10 @@ if __name__ == "__main__":
 
     # TODO: Handle the case when the argument is --test instead of --train
     # Load the dataset
-    train_dataset = DatasetQuestions(config.path_train, tokenisation_rules=tokenisation_rules)
+    train_dataset = DatasetQuestions(config.path_train, tokenisation_rules=tokenisation_rules, dict_path="../data/glove.small.txt")
     
     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
 
-    print(train_loader)
+    for q, l in train_loader:
+        print(q, l)
 
-    for emb_data_point in train_loader:
-        print(emb_data_point)
-
-    print(train_dataset.longest_sequence)
-
-    # one_hot_encoder = OneHotEncoder()
-    # one_hot_encoding = one_hot_encoder.encode(tokenised_questions, update_corpus=True)
