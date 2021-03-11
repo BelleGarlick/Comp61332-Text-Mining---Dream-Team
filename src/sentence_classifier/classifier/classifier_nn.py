@@ -23,7 +23,7 @@ class ClassifierNN(nn.Module):
         x = self.fc2(x)
         x = sigmoid(x)
         x = self.fc3(x)
-        x = nn.functional.log_softmax(x, dim=0)
+        x = nn.functional.log_softmax(x, dim=1)
 
         return x
 
