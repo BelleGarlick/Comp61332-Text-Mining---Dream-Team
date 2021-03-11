@@ -111,6 +111,14 @@ class EndToEndTest(TestCase):
                             training_data: List[Any],
                             training_labels: List[Any],
                             batch_size: int) -> Generator[Tuple[List[Any], List[Any]], None, None]:
+        """
+        Given a dataset of training examples and labels, generates batches of desired size as a tuples of lists i.e
+        yields/generates (training_data_batch, training_label_batch) until the dataset is exhausted
+        :param training_data:
+        :param training_labels:
+        :param batch_size:
+        :return: a generator that yields/streams example-label batches in a tuple
+        """
         if batch_size > len(training_data):
             raise
         else:
@@ -122,7 +130,6 @@ class EndToEndTest(TestCase):
                               training_labels[curr_index:curr_index+batch_size])
                 curr_index += batch_size
                 yield next_batch
-
 
 
     def test_end_to_end(self):
