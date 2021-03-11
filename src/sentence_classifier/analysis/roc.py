@@ -6,7 +6,7 @@ This module deals with analysing the predicted results of a classifier.
 
 Usage:
     clf.fit(X, y)
-    analysis = roc.analsis(val_y, clf.predict(val_X))
+    analysis = roc.analyse(val_y, clf.predict(val_X))
 """
 
 
@@ -36,7 +36,6 @@ def analyse(true_labels: list, predicted_labels: list) -> dict:
 
     # Build confusion matrix
     conf_matrix = __build_conf_matrix(classification_indexes, true_labels, predicted_labels)
-    print(conf_matrix)
 
     # Calc Tps, Fps, Tns, Fns
     tp, fp, fn, tn = __decompose_conf_matrix(conf_matrix, len(true_labels))
@@ -47,8 +46,13 @@ def analyse(true_labels: list, predicted_labels: list) -> dict:
     micro_average_recall = np.sum(tp) / (np.sum(tp) + np.sum(fn))
     f1 = (2 * micro_average_recall * micro_average_precision) / (micro_average_recall + micro_average_precision)
 
+    accuracy = np.sum([
+        int(predicted_labels[i] == true_labels[i])
+        for i in range(len(predicted_labels))
+    ]) / len(predicted_labels)
+
     return {
-        "accuracy": np.sum(tp + tn) / np.sum(tp + tn + fn + fp),
+        "accuracy": accuracy,
         "f1": f1,
         "precision": micro_average_precision,
         "recall": micro_average_recall,
