@@ -1,5 +1,89 @@
 import numpy as np
+from torch import nn
+
 import torch
+
+
+from typing import Iterable, Dict, List
+
+
+class WordEmbeddings(nn.Module):
+
+    def __init__(self, vocab: Iterable[str], embeddings: List[torch.FloatTensor]):
+        super(WordEmbeddings, self).__init__()
+
+        self.vocab = vocab
+        self.word_idx_dict = self.construct_word_idx_dict(vocab)
+        self.embedding_layer = nn.Embedding.from_pretrained(torch.stack(embeddings))
+
+    @staticmethod
+    def from_embeddings_file(embeddings_file_path: str) -> 'WordEmbeddings':
+        """
+        Assumes that the embedding file is in tab-separated format, with words in the first column and
+        embedding vectors in the second
+        :param embeddings_file_path:
+        :return: a WordEmbeddings model/layer that uses the vocab and embeddings in the provided file
+        """
+        with open(embeddings_file_path, "r") as embeddings_file:
+            float_str_to_float_tensor = lambda float_str: torch.FloatTensor([float(_str) for _str in float_str.split()])
+            pretrained_embeddings = []
+            vocab = []
+
+            for idx, line in enumerate(embeddings_file):
+                word_embedding_tuple = line.split("\t")
+                word = word_embedding_tuple[0]
+
+                vocab.append(word)
+                pretrained_embeddings.append(float_str_to_float_tensor(line.split("\t")[1]))
+
+        return WordEmbeddings(vocab, pretrained_embeddings)
+
+    @staticmethod
+    def from_random_embedding(vocab: Iterable[str], emb_dim: int) -> 'WordEmbeddings':
+        """
+        This uses the provided vocab and creates randomly-initialised embeddings for each word
+        :param emb_dim:
+        :param vocab:
+        :return: a WordEmbeddings model/layer that uses the provided vocab with random
+        """
+
+        random_embeddings = [torch.FloatTensor(np.random.uniform(size=emb_dim)) for word in vocab]
+        return WordEmbeddings(vocab, random_embeddings)
+
+    @staticmethod
+    def construct_vocab_from_embeddings_file(embeddings_file_path: str) -> Iterable[str]:
+        with open(embeddings_file_path, "r") as embeddings_file:
+            words = []
+
+            for idx, line in enumerate(embeddings_file):
+                word_embedding_tuple = line.split("\t")
+                word = word_embedding_tuple[0]
+                words.append(word)
+            return words
+
+    @staticmethod
+    def construct_word_idx_dict(vocab: Iterable[str]) -> Dict[str, int]:
+        word_idx_dict = {}
+        vocab_set = set(vocab)
+
+        for idx, word in enumerate(vocab_set):
+            word_idx_dict[word] = idx
+
+        return word_idx_dict
+
+    def idx_for_word(self, word: str) -> int:
+        try:
+            return self.word_idx_dict[word]
+        except KeyError as e:
+            return self.word_idx_dict["#UNK#"]
+
+    def sentence_to_idx_tensor(self, sentence: List[str]) -> torch.LongTensor:
+        return torch.LongTensor([self.idx_for_word(word) for word in sentence]).resize(len(sentence), 1)
+
+    def forward(self, sentence: List[str]):
+        # TODO: this needs to take a 2d IntTensor/LongTensor as input with dimensions (batch_size, padded_sentence_length)
+        x = self.embedding_layer(self.sentence_to_idx_tensor(sentence))
+        return x
 
 
 def load_glove(path):
