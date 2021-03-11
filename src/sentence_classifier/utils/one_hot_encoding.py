@@ -33,6 +33,17 @@ class OneHotEncoder:
         }
         self.mapping = mapping if mapping is not None else {}  # TODO: verify how self.mapping is used
 
+    def __len__(self):
+        """
+        Get the length of the corpus.
+
+        This fuction returns the number of words in the corpus.
+
+        Returns:
+            Number of words in corpus.
+        """
+        return len(self.corpus)
+
     def encode(self, data: List[List[str]], update_corpus=False):
         """
         One hot encode the data.
