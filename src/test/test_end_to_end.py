@@ -61,6 +61,7 @@ class EndToEndTest(TestCase):
 
     def test_end_to_end(self):
         torch.manual_seed(42)
+        np.random.seed(42)
 
         test_model = (Model.Builder()
                       .with_glove_word_embeddings("../data/glove.small.txt")
@@ -69,8 +70,9 @@ class EndToEndTest(TestCase):
                       .build())
 
         lr = 1.6e-1
+        lr = 0.002
         loss_fn = nn.NLLLoss(reduction="mean")
-        optimizer = torch.optim.SGD(test_model.parameters(), lr=lr)
+        optimizer = torch.optim.Adam(test_model.parameters(), lr=lr)
 
         training_data_file_path = "../data/train.txt"
         questions, labels = load(training_data_file_path)
