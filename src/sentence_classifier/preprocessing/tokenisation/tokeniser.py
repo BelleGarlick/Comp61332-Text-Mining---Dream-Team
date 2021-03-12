@@ -49,16 +49,16 @@ TOKENISE_COMMA_SEPERATED_NUMBERS:
     Often large numbers are seperated by a comma, this function will merge those tokens in two one tag #NUM#
 """
 DEFAULT_RULES = {
-    "TOKENISE_QUOTES": True,
-    "TOKENISE_NUMBERS": True,
-    "TOKENISE_MONTH": True,
-    "TOKENISE_PERCENTAGES": True,
-    "REMOVE_QUESTION_MARKS": True,
+    "TOKENISE_QUOTES": False,
+    "TOKENISE_NUMBERS": False,
+    "TOKENISE_MONTH": False,
+    "TOKENISE_PERCENTAGES": False,
+    "REMOVE_QUESTION_MARKS": False,
     "TOKENISE_STOPWORDS": False,
     "TOKENISE_URLS": True,
-    "TOKENISE_MONEY": True,
-    "TOKENISE_YEAR": True,
-    "TOKENISE_COMMA_SEPERATED_NUMBERS": True
+    "TOKENISE_MONEY": False,
+    "TOKENISE_YEAR": False,
+    "TOKENISE_COMMA_SEPERATED_NUMBERS": False
 }
 
 

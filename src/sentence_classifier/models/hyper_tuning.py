@@ -9,15 +9,16 @@ from sentence_classifier.preprocessing.tokenisation import parse_tokens
 from sentence_classifier.utils.one_hot_labels import OneHotLabels
 
 
-REPEATS = 3
+REPEATS = 1
 CLASSES = 50
 
 TRAIN_FILE_PATH = "../data/train.txt"
 VAL_FILE_PATH = "../data/dev.txt"
+TEST_FILE_PATH = "../data/test.txt"
 LABELS_JSON_FILE = "../data/labels.json"
 
 X, Y = load(TRAIN_FILE_PATH)
-val_X, val_Y = load(VAL_FILE_PATH)
+val_X, val_Y = load(TEST_FILE_PATH)
 
 one_hot_labels = OneHotLabels.from_labels_json_file(LABELS_JSON_FILE)
 
@@ -69,13 +70,13 @@ def build_model(model_type="bow"):
 
 
 if __name__ == "__main__":
-    for lr in [0.02, 0.04, 0.06, 0.08, 0.1]:
+    for lr in [0.001]:
         results = []
         for repeat in range(REPEATS):
             model = build_model("bilstm")
 
             loss_fn = nn.NLLLoss(reduction="mean")
-            optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
             results.append(train_model(model, loss_fn, optimizer, repeat))
 
