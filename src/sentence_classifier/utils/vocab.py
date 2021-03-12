@@ -14,6 +14,14 @@ class VocabUtils:
         return vocab
 
     @staticmethod
+    def save_vocabs(input_file, output_file):
+        vocabs = VocabUtils.vocab_from_training_data(input_file)
+        f = open(output_file, 'w')
+        for w in vocabs:
+            f.write("%s\n" % w)
+        f.close()
+
+    @staticmethod
     def vocab_from_text_corpus(test_corpus: Iterable) -> Set[str]:
         """
         Given a corpus (represented as a List of str or a List-of-List of str, etc.), returns a set of unique
