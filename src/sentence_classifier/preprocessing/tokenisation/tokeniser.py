@@ -1,15 +1,13 @@
 from typing import List
-from .stopwords import replace_stopwords
 
 
-TOKEN_CHAR_NUM = "#NUM#"
-TOKEN_CHAR_MONEY = "#MONEY#"
-TOKEN_CHAR_MONTH = "#MONTH#"
-TOKEN_CHAR_PERCENTAGE = "#PERCENT#"
+TOKEN_CHAR_NUM = "number"
+TOKEN_CHAR_MONEY = "money"
+TOKEN_CHAR_MONTH = "month"
+TOKEN_CHAR_PERCENTAGE = "percentage"
 TOKEN_CHAR_QUOTE = "#QUOTE#"
-TOKEN_CHAR_URL = "#URL#"
-TOKEN_STOPWORDS = "#STOPWORD#"
-TOKEN_YEAR = "#YEAR#"
+TOKEN_CHAR_URL = "URL"
+TOKEN_YEAR = "year"
 
 
 """
@@ -33,9 +31,6 @@ TOKENISE_PERCENTAGES
 REMOVE_QUESTION_MARKS
     This tag will remove any question mark as they may not be useful.
     
-TOKENISE_STOPWORDS
-    This tag will convert stop words (see preprocessing.tokenisation.stopwords) to #STOPWORD#
-    
 TOKENISE_URLS:
     This tag will convert urls from www.example.com to just #URL#
     
@@ -49,12 +44,11 @@ TOKENISE_COMMA_SEPERATED_NUMBERS:
     Often large numbers are seperated by a comma, this function will merge those tokens in two one tag #NUM#
 """
 DEFAULT_RULES = {
-    "TOKENISE_QUOTES": True,
+    "TOKENISE_QUOTES": False,
     "TOKENISE_NUMBERS": True,
     "TOKENISE_MONTH": True,
     "TOKENISE_PERCENTAGES": True,
     "REMOVE_QUESTION_MARKS": True,
-    "TOKENISE_STOPWORDS": False,
     "TOKENISE_URLS": True,
     "TOKENISE_MONEY": True,
     "TOKENISE_YEAR": True,
@@ -87,10 +81,7 @@ def parse_tokens(tokens, rules: dict = None) -> List[str]:
     rules = fill_rules(rules)
 
     # Lower all chars
-    tokens = [token.lower() for token in tokens]
-
-    if rules["TOKENISE_STOPWORDS"]:
-        tokens = replace_stopwords(tokens, TOKEN_STOPWORDS)
+    # tokens = [token.lower() for token in tokens]
 
     if rules["TOKENISE_QUOTES"]:
         tokens = parse_quotes(tokens)

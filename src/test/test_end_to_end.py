@@ -20,11 +20,11 @@ class OneHotLabels:
         for idx, label in enumerate(set(labels)):
             self.label_dict[label] = idx
 
-    def one_hot_vec_for(self, label: str) -> torch.LongTensor:
+    def one_hot_vec_for(self, label: str) -> torch.FloatTensor:
         vec = np.zeros(len(self.label_dict))
         pos = self.label_dict[label]
         vec[pos] = 1
-        return torch.LongTensor(vec)
+        return torch.FloatTensor(vec)
 
     def idx_for_label(self, label: str) -> int:
         return self.label_dict[label]
