@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from torch.nn.functional import one_hot, pad
+from torch.nn.functional import pad
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_tokens
 import torch
@@ -23,8 +23,6 @@ class DatasetQuestions(Dataset):
         for i in data:
             self.one_hot_labels[i] = data[i]
 
-
-        # self.one_hot_labels = OneHotLabels(self.classifications)
         self.embedding_map = {}
         idx = 1
         with open(vocab_path) as file:
