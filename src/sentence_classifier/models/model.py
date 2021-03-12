@@ -41,17 +41,17 @@ class Model(nn.Module):
             self.sentence_embeddings: Optional[SentenceEmbedder] = None
             self.classifer: Optional[ClassifierNN] = None
 
-        def with_glove_word_embeddings(self, embeddings_file_path: str) -> 'Model.Builder':
-            word_embeddings = WordEmbeddings.from_embeddings_file(embeddings_file_path)
+        def with_glove_word_embeddings(self, embeddings_file_path: str, freeze: Optional[bool] = True) -> 'Model.Builder':
+            word_embeddings = WordEmbeddings.from_embeddings_file(embeddings_file_path, freeze=freeze)
             self.word_embeddings = word_embeddings
             return self
 
-        def with_random_word_embeddings(self, training_data_file: str, emb_dim) -> 'Model.Builder':
+        def with_random_word_embeddings(self, training_data_file: str, emb_dim, freeze: Optional[bool] = True) -> 'Model.Builder':
             """
             Uses the tokenized training data as a vocabulary
             """
             vocab = VocabUtils.vocab_from_training_data(training_data_file)
-            word_embeddings = WordEmbeddings.from_random_embedding(vocab, emb_dim)
+            word_embeddings = WordEmbeddings.from_random_embedding(vocab, emb_dim, freeze=freeze)
             self.word_embeddings = word_embeddings
             return self
 
