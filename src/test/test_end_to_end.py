@@ -1,92 +1,15 @@
 from unittest import TestCase
 from torch import nn
-from torch.tensor import Tensor
-from torch.nn import Embedding
-from torch import FloatTensor
-from torch.nn.utils.rnn import pad_sequence
+
 
 import torch
 import numpy as np
 
 from typing import List, Iterable, Dict, Any, Generator, Tuple
 
-from sentence_classifier.analysis import roc
-from sentence_classifier.classifier.classifier_nn import ClassifierNN
-from sentence_classifier.preprocessing.bagofwords import BagOfWords
-from sentence_classifier.models.BiLSTM import BiLSTM
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.preprocessing.tokenisation import parse_tokens
-
-
-CLASSES = 50
-TEST_DATASET_FILE_PATH = "../data/test.txt"
-
-
-class TestWordEmbeddings(nn.Module):
-
-    def __init__(self, embeddings_file_path: str):
-        super(TestWordEmbeddings, self).__init__()
-
-        self.word_idx_dict = {}
-
-        with open(embeddings_file_path, "r") as embeddings_file:
-            float_str_to_float_tensor = lambda float_str: FloatTensor([float(_str) for _str in float_str.split()])
-            pretrained_embeddings = []
-
-            for idx, line in enumerate(embeddings_file):
-                word_embedding_tuple = line.split("\t")
-                word = word_embedding_tuple[0]
-                self.word_idx_dict[word] = idx
-
-                pretrained_embeddings.append(float_str_to_float_tensor(line.split("\t")[1]))
-
-            self.embedding_layer = Embedding.from_pretrained(torch.stack(pretrained_embeddings))
-
-    def idx_for_word(self, word: str) -> int:
-        try:
-            return self.word_idx_dict[word]
-        except KeyError as e:
-            return self.word_idx_dict["#UNK#"]
-
-    def sentence_to_idx_tensor(self, sentence: List[str]) -> Tensor:
-        return torch.LongTensor([self.idx_for_word(word) for word in sentence]).reshape(len(sentence), 1)
-
-    def forward(self, sentence: List[str]):
-        # TODO: this needs to take a 2d IntTensor/LongTensor as input with dimensions (batch_size, padded_sentence_length)
-        x = self.embedding_layer(self.sentence_to_idx_tensor(sentence))
-        return x
-
-
-class TestModelBagOfWords(nn.Module):
-    def __init__(self):
-        super(TestModelBagOfWords, self).__init__()
-
-        self.word_embeddings = TestWordEmbeddings("../data/glove.small.txt")
-        self.sentence_embeddings = BagOfWords()
-        self.classifier = ClassifierNN(300)
-
-    def forward(self, x):
-        x = self.word_embeddings(x)
-        x = self.sentence_embeddings(x)
-        x = self.classifier(x)
-
-        return x
-
-
-class TestModelBiLSTM(nn.Module):
-    def __init__(self):
-        super(TestModelBiLSTM, self).__init__()
-
-        self.word_embeddings = TestWordEmbeddings("../data/glove.small.txt")
-        self.sentence_embeddings = BiLSTM(300, 300)
-        self.classifier = ClassifierNN(300)
-
-    def forward(self, x):
-        x = self.word_embeddings(x)
-        x = self.sentence_embeddings(x)
-        x = self.classifier(x)
-
-        return x
+from sentence_classifier.models.model import Model
 
 
 class OneHotLabels:
@@ -136,33 +59,41 @@ class EndToEndTest(TestCase):
                 curr_index += batch_size
                 yield next_batch
 
-
     def test_end_to_end(self):
         torch.manual_seed(42)
 
-        test_model = TestModelBagOfWords()
+        test_model = (Model.Builder()
+                      .with_glove_word_embeddings("../data/glove.small.txt")
+                      .with_bow_sentence_embedder()
+                      .with_classifier(300)
+                      .build())
 
-        lr = 1e-1
+        lr = 1.6e-1
         loss_fn = nn.NLLLoss(reduction="mean")
         optimizer = torch.optim.SGD(test_model.parameters(), lr=lr)
 
-        questions, labels = load(TEST_DATASET_FILE_PATH)
+        training_data_file_path = "../data/train.txt"
+        questions, labels = load(training_data_file_path)
         one_hot_labels = OneHotLabels(labels)
 
         epochs = 10
         for epoch in range(epochs):
-            for i, question in enumerate(questions):
+            for count in range(len(questions)):
                 test_model.train()
+
+                question = questions[count]
+                label = labels[count]
 
                 yhat = test_model(parse_tokens(question))
 
-                loss = loss_fn(yhat.reshape(1, CLASSES), torch.LongTensor([one_hot_labels.idx_for_label(labels[i])]))
+                loss = loss_fn(yhat.reshape(1, 50), torch.LongTensor([one_hot_labels.idx_for_label(label)]))
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
 
         # do a test on the trained model (might not always work but hopefully should always work with the random seed)
-        test_questions, test_labels = load(TEST_DATASET_FILE_PATH)
+        test_dataset_file_path = "../data/test.txt"
+        test_questions, test_labels = load(test_dataset_file_path)
 
         correct_predictions = 0
         for count in range(len(test_questions)):
@@ -180,9 +111,12 @@ class EndToEndTest(TestCase):
 
     def test_end_to_end_bilstm(self):
         torch.manual_seed(42)
-        np.random.seed(42)
 
-        test_model = TestModelBiLSTM()
+        test_model = (Model.Builder()
+                      .with_glove_word_embeddings("../data/glove.small.txt")
+                      .with_bilstm_sentence_classifier(300, 300)
+                      .with_classifier(300)
+                      .build())
 
         lr = 0.1
         loss_fn = nn.NLLLoss(reduction="mean")
@@ -192,14 +126,15 @@ class EndToEndTest(TestCase):
         questions, labels = load(training_data_file_path)
         one_hot_labels = OneHotLabels(labels)
 
-        epochs = 1
+        epochs = 10
         for epoch in range(epochs):
-            for i, question in enumerate(questions):
-                print(f"LR: {lr} Epoch: {epoch + 1}, Q: {i + 1}/{len(questions)}")
+            for count in range(len(questions)):
+                question = questions[count]
+                label = labels[count]
 
                 yhat = test_model(parse_tokens(question))
 
-                loss = loss_fn(yhat.reshape(1, CLASSES), torch.LongTensor([one_hot_labels.idx_for_label(labels[i])]))
+                loss = loss_fn(yhat.reshape(1, 50), torch.LongTensor([one_hot_labels.idx_for_label(label)]))
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
@@ -208,11 +143,68 @@ class EndToEndTest(TestCase):
         test_dataset_file_path = "../data/test.txt"
         test_questions, test_labels = load(test_dataset_file_path)
 
-        def predict_target(input_question):
-            return one_hot_labels.label_for_idx(torch.argmax(test_model(parse_tokens(input_question))))
+        correct_predictions = 0
+        for count in range(len(test_questions)):
+            test_question = questions[count]
+            test_label = labels[count]
 
-        predicted_outputs = list(map(predict_target, test_questions))
+            predicted_log_probabilities = test_model(parse_tokens(test_question))
+            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
 
-        analysis = roc.analyse(test_labels, predicted_outputs)
-        print(f'End-to-end test accuracy: {analysis["accuracy"] * 100}%')
-        self.assertTrue(analysis["accuracy"] >= 0.5)  # i.e assert at least 50% accuracy
+            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
+
+        accuracy = correct_predictions / len(test_questions)
+        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
+
+    def test_end_to_end_test_bow_random_embeddings(self):
+        torch.manual_seed(42)
+
+        training_data_file_path = "../data/train.txt"
+
+        test_model = (Model.Builder()
+                      .with_random_word_embeddings(training_data_file_path, 300)
+                      .with_bow_sentence_embedder()
+                      .with_classifier(300)
+                      .build())
+
+        lr = 1e-1
+        loss_fn = nn.NLLLoss(reduction="mean")
+        optimizer = torch.optim.SGD(test_model.parameters(), lr=lr)
+
+        training_data_file_path = "../data/train.txt"
+        questions, labels = load(training_data_file_path)
+        one_hot_labels = OneHotLabels(labels)
+
+        epochs = 10
+        for epoch in range(epochs):
+            for count in range(len(questions)):
+                test_model.train()
+
+                question = questions[count]
+                label = labels[count]
+
+                yhat = test_model(parse_tokens(question))
+
+                loss = loss_fn(yhat.reshape(1, 50), torch.LongTensor([one_hot_labels.idx_for_label(label)]))
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+
+        # do a test on the trained model (might not always work but hopefully should always work with the random seed)
+        test_dataset_file_path = "../data/test.txt"
+        test_questions, test_labels = load(test_dataset_file_path)
+
+        correct_predictions = 0
+        for count in range(len(test_questions)):
+            test_question = questions[count]
+            test_label = labels[count]
+
+            predicted_log_probabilities = test_model(parse_tokens(test_question))
+            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
+
+            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
+
+        accuracy = correct_predictions / len(test_questions)
+        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.35)  # i.e assert at least 35% accuracy (due to frozen and random word-embeddings)

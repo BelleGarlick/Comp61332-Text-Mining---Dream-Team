@@ -10,7 +10,6 @@ from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_token
 from sentence_classifier.preprocessing.reader import load
 
 
-
 class BiLSTM(nn.Module):
     def __init__(self, embedding_dim, hidden_dim,
                  bidirectional: Optional[bool] = True,
@@ -20,8 +19,9 @@ class BiLSTM(nn.Module):
 
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, bidirectional=True)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, bidirectional=bidirectional)
         self.hidden_state_combiner = self.hidden_state_adder_fn() if combine_hidden == "sum" else self.hidden_state_concat_fn
+        self.output_dim = hidden_dim*2 if bidirectional and combine_hidden != "sum" else hidden_dim
 
     @staticmethod
     def hidden_state_adder_fn() -> Callable[[torch.FloatTensor], torch.FloatTensor]:
@@ -46,9 +46,6 @@ class BiLSTM(nn.Module):
 
         final_hidden_state = hidden_states.view(num_layers, num_directions, batch_size, hidden_size)
         return final_hidden_state
-
-    def reshape(self):
-        pass
 
     def forward(self, sentence_word_embeddings: torch.FloatTensor) -> torch.FloatTensor:
         """
