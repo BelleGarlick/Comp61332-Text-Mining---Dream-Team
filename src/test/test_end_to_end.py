@@ -7,65 +7,9 @@ import numpy as np
 
 from typing import List, Iterable, Dict, Any, Generator, Tuple
 
-from sentence_classifier.classifier.classifier_nn import ClassifierNN
-from sentence_classifier.preprocessing.bagofwords import BagOfWords
-from sentence_classifier.models.BiLSTM import BiLSTM
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.preprocessing.tokenisation import parse_tokens
-from sentence_classifier.preprocessing.embedding import WordEmbeddings
-from sentence_classifier.utils.vocab import VocabUtils
-
-
-class TestModelBagOfWords(nn.Module):
-    def __init__(self):
-        super(TestModelBagOfWords, self).__init__()
-
-        self.word_embeddings = WordEmbeddings.from_embeddings_file("../data/glove.small.txt")
-        self.sentence_embeddings = BagOfWords()
-        self.classifier = ClassifierNN(300)
-
-    def forward(self, x):
-        x = self.word_embeddings(x)
-        x = self.sentence_embeddings(x)
-        x = self.classifier(x)
-
-        return x
-
-
-class TestModelBiLSTM(nn.Module):
-    def __init__(self):
-        super(TestModelBiLSTM, self).__init__()
-
-        self.word_embeddings = WordEmbeddings.from_embeddings_file("../data/glove.small.txt")
-        self.sentence_embeddings = BiLSTM(300, 300)
-        self.classifier = ClassifierNN(300)
-
-    def forward(self, x):
-        x = self.word_embeddings(x)
-        x = self.sentence_embeddings(x)
-        x = self.classifier(x)
-
-        return x
-
-
-class TestModelBagOfWordsRandomEmbeddings(nn.Module):
-    def __init__(self):
-        super(TestModelBagOfWordsRandomEmbeddings, self).__init__()
-
-        training_data_file_path = "../data/train.txt"
-        questions, _ = load(training_data_file_path)
-        vocab = VocabUtils.vocab_from_text_corpus([parse_tokens(question) for question in questions])
-
-        self.word_embeddings = WordEmbeddings.from_random_embedding(vocab, 300)
-        self.sentence_embeddings = BagOfWords()
-        self.classifier = ClassifierNN(300)
-
-    def forward(self, x):
-        x = self.word_embeddings(x)
-        x = self.sentence_embeddings(x)
-        x = self.classifier(x)
-
-        return x
+from sentence_classifier.models.model import Model
 
 
 class OneHotLabels:
@@ -118,9 +62,13 @@ class EndToEndTest(TestCase):
     def test_end_to_end(self):
         torch.manual_seed(42)
 
-        test_model = TestModelBagOfWords()
+        test_model = (Model.Builder()
+                      .with_glove_word_embeddings("../data/glove.small.txt")
+                      .with_bow_sentence_embedder()
+                      .with_classifier(300)
+                      .build())
 
-        lr = 1e-1
+        lr = 1.6e-1
         loss_fn = nn.NLLLoss(reduction="mean")
         optimizer = torch.optim.SGD(test_model.parameters(), lr=lr)
 
@@ -164,7 +112,11 @@ class EndToEndTest(TestCase):
     def test_end_to_end_bilstm(self):
         torch.manual_seed(42)
 
-        test_model = TestModelBiLSTM()
+        test_model = (Model.Builder()
+                      .with_glove_word_embeddings("../data/glove.small.txt")
+                      .with_bilstm_sentence_classifier(300, 300)
+                      .with_classifier(300)
+                      .build())
 
         lr = 0.1
         loss_fn = nn.NLLLoss(reduction="mean")
@@ -187,28 +139,34 @@ class EndToEndTest(TestCase):
                 optimizer.step()
                 optimizer.zero_grad()
 
-            # do a test on the trained model (might not always work but hopefully should always work with the random seed)
-            test_dataset_file_path = "../data/test.txt"
-            test_questions, test_labels = load(test_dataset_file_path)
+        # do a test on the trained model (might not always work but hopefully should always work with the random seed)
+        test_dataset_file_path = "../data/test.txt"
+        test_questions, test_labels = load(test_dataset_file_path)
 
-            correct_predictions = 0
-            for count in range(len(test_questions)):
-                test_question = questions[count]
-                test_label = labels[count]
+        correct_predictions = 0
+        for count in range(len(test_questions)):
+            test_question = questions[count]
+            test_label = labels[count]
 
-                predicted_log_probabilities = test_model(parse_tokens(test_question))
-                predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
+            predicted_log_probabilities = test_model(parse_tokens(test_question))
+            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
 
-                correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
+            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
 
-            accuracy = correct_predictions / len(test_questions)
-            print(f'End-to-end test accuracy: {accuracy * 100}%')
-            self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
+        accuracy = correct_predictions / len(test_questions)
+        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
 
     def test_end_to_end_test_bow_random_embeddings(self):
         torch.manual_seed(42)
 
-        test_model = TestModelBagOfWordsRandomEmbeddings()
+        training_data_file_path = "../data/train.txt"
+
+        test_model = (Model.Builder()
+                      .with_random_word_embeddings(training_data_file_path, 300)
+                      .with_bow_sentence_embedder()
+                      .with_classifier(300)
+                      .build())
 
         lr = 1e-1
         loss_fn = nn.NLLLoss(reduction="mean")
