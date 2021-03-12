@@ -60,7 +60,7 @@ class Model(nn.Module):
             self.sentence_embeddings = bow
             return self
 
-        def with_bilstm_sentence_classifier(self, emb_dim, hidden_dim) -> 'Model.Builder':
+        def with_bilstm_sentence_embedder(self, emb_dim, hidden_dim) -> 'Model.Builder':
             bilstm = BiLSTM(emb_dim, hidden_dim)
             self.sentence_embeddings = bilstm
             return self

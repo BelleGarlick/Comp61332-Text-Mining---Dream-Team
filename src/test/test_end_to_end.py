@@ -114,7 +114,7 @@ class EndToEndTest(TestCase):
 
         test_model = (Model.Builder()
                       .with_glove_word_embeddings("../data/glove.small.txt")
-                      .with_bilstm_sentence_classifier(300, 300)
+                      .with_bilstm_sentence_embedder(300, 300)
                       .with_classifier(300)
                       .build())
 

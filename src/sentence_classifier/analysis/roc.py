@@ -36,7 +36,6 @@ def analyse(true_labels: list, predicted_labels: list) -> dict:
 
     # Build confusion matrix
     conf_matrix = __build_conf_matrix(classification_indexes, true_labels, predicted_labels)
-    print(conf_matrix)
 
     # Calc Tps, Fps, Tns, Fns
     tp, fp, fn, tn = __decompose_conf_matrix(conf_matrix, len(true_labels))
@@ -47,8 +46,12 @@ def analyse(true_labels: list, predicted_labels: list) -> dict:
     micro_average_recall = np.sum(tp) / (np.sum(tp) + np.sum(fn))
     f1 = (2 * micro_average_recall * micro_average_precision) / (micro_average_recall + micro_average_precision)
 
+    accuracy = 0
+    for i in range(len(true_labels)):
+        accuracy += int(true_labels[i] == predicted_labels[i])
+
     return {
-        "accuracy": np.sum(tp + tn) / np.sum(tp + tn + fn + fp),
+        "accuracy": accuracy / len(true_labels),
         "f1": f1,
         "precision": micro_average_precision,
         "recall": micro_average_recall,
