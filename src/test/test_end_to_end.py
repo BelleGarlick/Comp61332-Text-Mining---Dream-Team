@@ -5,32 +5,12 @@ from torch import nn
 import torch
 import numpy as np
 
-from typing import List, Iterable, Dict, Any, Generator, Tuple
+from typing import List, Any, Generator, Tuple
 
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.preprocessing.tokenisation import parse_tokens
 from sentence_classifier.models.model import Model
-
-
-class OneHotLabels:
-
-    def __init__(self, labels: Iterable[str]):
-        self.label_dict: Dict[str, int] = {}
-
-        for idx, label in enumerate(set(labels)):
-            self.label_dict[label] = idx
-
-    def one_hot_vec_for(self, label: str) -> torch.LongTensor:
-        vec = np.zeros(len(self.label_dict))
-        pos = self.label_dict[label]
-        vec[pos] = 1
-        return torch.LongTensor(vec)
-
-    def idx_for_label(self, label: str) -> int:
-        return self.label_dict[label]
-
-    def label_for_idx(self, idx: int) -> str:
-        return list(self.label_dict.keys())[idx]
+from sentence_classifier.utils.one_hot_labels import OneHotLabels
 
 
 class EndToEndTest(TestCase):
@@ -69,14 +49,13 @@ class EndToEndTest(TestCase):
                       .with_classifier(300)
                       .build())
 
-        lr = 1.6e-1
         lr = 0.002
         loss_fn = nn.NLLLoss(reduction="mean")
         optimizer = torch.optim.Adam(test_model.parameters(), lr=lr)
 
         training_data_file_path = "../data/train.txt"
         questions, labels = load(training_data_file_path)
-        one_hot_labels = OneHotLabels(labels)
+        one_hot_labels = OneHotLabels.from_labels_json_file("../data/labels.json")
 
         epochs = 10
         for epoch in range(epochs):
@@ -126,7 +105,7 @@ class EndToEndTest(TestCase):
 
         training_data_file_path = "../data/train.txt"
         questions, labels = load(training_data_file_path)
-        one_hot_labels = OneHotLabels(labels)
+        one_hot_labels = OneHotLabels.from_labels_json_file("../data/labels.json")
 
         epochs = 10
         for epoch in range(epochs):
@@ -176,7 +155,7 @@ class EndToEndTest(TestCase):
 
         training_data_file_path = "../data/train.txt"
         questions, labels = load(training_data_file_path)
-        one_hot_labels = OneHotLabels(labels)
+        one_hot_labels = OneHotLabels.from_labels_json_file("../data/labels.json")
 
         epochs = 10
         for epoch in range(epochs):
@@ -227,7 +206,7 @@ class EndToEndTest(TestCase):
 
         training_data_file_path = "../data/train.txt"
         questions, labels = load(training_data_file_path)
-        one_hot_labels = OneHotLabels(labels)
+        one_hot_labels = OneHotLabels.from_labels_json_file("../data/labels.json")
 
         epochs = 10
         for epoch in range(epochs):
