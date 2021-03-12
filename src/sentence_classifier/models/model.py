@@ -46,11 +46,11 @@ class Model(nn.Module):
             self.word_embeddings = word_embeddings
             return self
 
-        def with_random_word_embeddings(self, training_data_file: str, emb_dim, freeze: Optional[bool] = True) -> 'Model.Builder':
+        def with_random_word_embeddings(self, vocab_data_file: str, emb_dim, freeze: Optional[bool] = True) -> 'Model.Builder':
             """
-            Uses the tokenized training data as a vocabulary
+            Uses the supplied vocab with random work embeddings
             """
-            vocab = VocabUtils.vocab_from_training_data(training_data_file)
+            vocab = VocabUtils.load_vocab(vocab_data_file)
             word_embeddings = WordEmbeddings.from_random_embedding(vocab, emb_dim, freeze=freeze)
             self.word_embeddings = word_embeddings
             return self

@@ -130,10 +130,9 @@ class EndToEndTest(TestCase):
     def test_end_to_end_test_bow_random_embeddings(self):
         torch.manual_seed(42)
 
-        training_data_file_path = "../data/train.txt"
-
+        vocab_file_path = "../data/vocab.txt"
         test_model = (Model.Builder()
-                      .with_random_word_embeddings(training_data_file_path, 300)
+                      .with_random_word_embeddings(vocab_file_path, 300)
                       .with_bow_sentence_embedder()
                       .with_classifier(300)
                       .build())
@@ -217,3 +216,91 @@ class EndToEndTest(TestCase):
 
         print(f'End-to-end BOW Glove non-frozen test accuracy: {accuracy * 100}%')
         self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
+
+
+    def test_end_to_end_bilstm_glove_tuned(self):
+        torch.manual_seed(42)
+
+        test_model = (Model.Builder()
+                      .with_glove_word_embeddings("../data/glove.small.txt", freeze=False)
+                      .with_bilstm_sentence_embedder(300, 300)
+                      .with_classifier(300)
+                      .build())
+
+        lr = 0.001
+        loss_fn = nn.NLLLoss(reduction="mean")
+        optimizer = torch.optim.Adam(test_model.parameters(), lr=lr)
+
+        training_data_file_path = "../data/train.txt"
+        questions, labels = load(training_data_file_path)
+        one_hot_labels = OneHotLabels.from_labels_json_file("../data/labels.json")
+
+        epochs = 10
+        for epoch in range(epochs):
+            for count in range(len(questions)):
+                question = questions[count]
+                label = labels[count]
+
+                yhat = test_model(parse_tokens(question))
+
+                loss = loss_fn(yhat.reshape(1, 50), torch.LongTensor([one_hot_labels.idx_for_label(label)]))
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+
+        # do a test on the trained model (might not always work but hopefully should always work with the random seed)
+        test_dataset_file_path = "../data/test.txt"
+        test_questions, test_labels = load(test_dataset_file_path)
+
+        accuracy = roc.analyse(test_labels, [
+            one_hot_labels.label_for_idx(torch.argmax(test_model(parse_tokens(test_question))))
+            for test_question in test_questions
+        ])["f1"]
+
+        print(f'End-to-end BiLSTM Glove test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
+
+    def test_end_to_end_bilstm_random_frozen(self):
+        torch.manual_seed(42)
+
+        vocab_file_path = "../data/vocab.txt"
+        test_model = (Model.Builder()
+                      .with_random_word_embeddings(vocab_file_path, 300, freeze=True)
+                      .with_bilstm_sentence_embedder(300, 300)
+                      .with_classifier(300)
+                      .build())
+
+        lr = 0.001
+        loss_fn = nn.NLLLoss(reduction="mean")
+        optimizer = torch.optim.Adam(test_model.parameters(), lr=lr)
+
+        training_data_file_path = "../data/train.txt"
+        questions, labels = load(training_data_file_path)
+        one_hot_labels = OneHotLabels.from_labels_json_file("../data/labels.json")
+
+        epochs = 10
+        for epoch in range(epochs):
+            for count in range(len(questions)):
+                question = questions[count]
+                label = labels[count]
+
+                yhat = test_model(parse_tokens(question))
+
+                loss = loss_fn(yhat.reshape(1, 50), torch.LongTensor([one_hot_labels.idx_for_label(label)]))
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+
+        # do a test on the trained model (might not always work but hopefully should always work with the random seed)
+        test_dataset_file_path = "../data/test.txt"
+        test_questions, test_labels = load(test_dataset_file_path)
+
+        accuracy = roc.analyse(test_labels, [
+            one_hot_labels.label_for_idx(torch.argmax(test_model(parse_tokens(test_question))))
+            for test_question in test_questions
+        ])["f1"]
+
+        print(f'End-to-end BiLSTM Glove test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
+
+

@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, List
 from collections.abc import Iterable
 
 from sentence_classifier.preprocessing.reader import load
@@ -6,6 +6,11 @@ from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_token
 
 
 class VocabUtils:
+
+    @staticmethod
+    def load_vocab(vocab_file_path: str) -> List[str]:
+        with open(vocab_file_path, "r") as vocab_file:
+            return list([line.split()[0] for line in vocab_file.readlines()])
 
     @staticmethod
     def vocab_from_training_data(training_data_file_path: str) -> Set[str]:

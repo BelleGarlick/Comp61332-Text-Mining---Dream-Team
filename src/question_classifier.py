@@ -72,7 +72,7 @@ def test_model(model: Model, test_dataset_file_path: str) -> float:
         test_label = test_labels[count]
 
         predicted_log_probabilities = model(parse_tokens(test_question))
-        predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
+        predicted_label = one_hot_labels.label_for_idx(int(torch.argmax(predicted_log_probabilities)))
 
         correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
 
@@ -118,21 +118,12 @@ if __name__ == "__main__":
     else:
         raise ArgException("Argument --train or --test must be passed")
 
-    model = Config.build_model_from_config(config_file)
-
-    train_model(model, config.path_train, torch.nn.NLLLoss(reduction="mean"),
-                config.epochs, torch.optim.Adam(model.parameters(), lr=config.lr))
 
     # -------------------------------------------------------------------- #
 
-    # VocabUtils.save_vocabs('../data/train.txt', '../data/vocabs.txt')
+    #VocabUtils.save_vocabs('../data/train.txt', '../data/vocabs.txt')
 
     # TODO: Handle the case when the argument is --test instead of --train
     # Load the dataset
     train_dataset = DatasetQuestions(config.path_train, tokenisation_rules=tokenisation_rules, vocab_path='../data/vocabs.txt')
-    
     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
-
-    # TODO: train the model etc.
-    for q, l in train_loader:
-        print(q, l)
