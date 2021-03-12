@@ -9,15 +9,15 @@ from sentence_classifier.preprocessing.tokenisation import parse_tokens
 from sentence_classifier.utils.one_hot_labels import OneHotLabels
 
 
-REPEATS = 5
+REPEATS = 3
 CLASSES = 50
 
 TRAIN_FILE_PATH = "../data/train.txt"
-TEST_FILE_PATH = "../data/test.txt"
+VAL_FILE_PATH = "../data/dev.txt"
 LABELS_JSON_FILE = "../data/labels.json"
 
 X, Y = load(TRAIN_FILE_PATH)
-test_X, test_Y = load(TEST_FILE_PATH)
+val_X, val_Y = load(VAL_FILE_PATH)
 
 one_hot_labels = OneHotLabels.from_labels_json_file(LABELS_JSON_FILE)
 
@@ -44,9 +44,9 @@ def train_model(model, loss_fn, optimizer, repeat, epochs=10):
                 repeat + 1, epoch + 1, count + 1, len(X), np.mean(avg_loss)
             ), end="")
 
-    return roc.analyse(test_Y, [
+    return roc.analyse(val_Y, [
         one_hot_labels.label_for_idx(torch.argmax(model(parse_tokens(test_question))))
-        for test_question in test_X
+        for test_question in val_X
     ])["f1"]
 
 
@@ -57,24 +57,25 @@ def build_model(model_type="bow"):
                 .with_bow_sentence_embedder()
                 .with_classifier(300)
                 .build())
+
     elif model_type == "bilstm":
         return (Model.Builder()
                 .with_glove_word_embeddings("../data/glove.small.txt")
                 .with_bilstm_sentence_embedder(300, 300)
                 .with_classifier(300)
                 .build())
+
     raise Exception("Please specify a model from {'bow', 'bilstm'}")
 
 
 if __name__ == "__main__":
-
-    for lr in [0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01]:
+    for lr in [0.02, 0.04, 0.06, 0.08, 0.1]:
         results = []
         for repeat in range(REPEATS):
             model = build_model("bilstm")
 
             loss_fn = nn.NLLLoss(reduction="mean")
-            optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+            optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
             results.append(train_model(model, loss_fn, optimizer, repeat))
 
