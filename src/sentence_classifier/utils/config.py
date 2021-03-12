@@ -28,6 +28,7 @@ class Config:
     path_eval_result: Optional[str]
 
     word_embeddings: Literal["random", "glove"]  # TODO: requires python3.8+, remove if Kilburn VMs don't support it
+    tune_word_embeddings: Literal["freeze", "tune"]
     path_word_embeddings: Optional[str]
     word_embedding_dim: Optional[int]
 
@@ -59,6 +60,8 @@ class Config:
         else:
             pass
 
+        train_word_embeddings = Config.parse_train_word_embedding_config(config["train_word_embeddings"])
+
         sentencer_embedder = Config.parse_sentence_embedder_config(config.get("sentence_embedder"))
         if sentencer_embedder == "bilstm":
             if config.get("bilstm_input_dim") is None:
@@ -78,6 +81,7 @@ class Config:
                           float(config["lr"]),
                           config.get("path_eval_result"),
                           word_embeddings,
+                          train_word_embeddings,
                           config.get("path_word_embeddings"),
                           int(config.get("word_embedding_dim")),
                           sentencer_embedder,
@@ -94,11 +98,13 @@ class Config:
     def build_model_from_config(filepath: str) -> Model:
         config = Config.from_config_file(filepath)
         model_builder = Model.Builder()
+        fine_tune = config.tune_word_embeddings == "tune"
+        freeze = not fine_tune
 
         if config.word_embeddings == "glove":
-            model_builder.with_glove_word_embeddings(config.path_word_embeddings)
+            model_builder.with_glove_word_embeddings(config.path_word_embeddings, freeze=freeze)
         else:
-            model_builder.with_random_word_embeddings(config.path_train, config.word_embedding_dim)
+            model_builder.with_random_word_embeddings(config.path_train, config.word_embedding_dim, freeze=freeze)
 
         if config.sentence_embedder == "bow":
             model_builder.with_bow_sentence_embedder()
@@ -120,10 +126,19 @@ class Config:
             raise ConfigurationException(f'word_embedding must be "glove" or "random"')
 
     @staticmethod
+    def parse_train_word_embedding_config(train_word_embedding_config_str: str) -> Literal["freeze", "tune"]:
+        if train_word_embedding_config_str == "freeze":
+            return "freeze"
+        elif train_word_embedding_config_str == "tune":
+            return "tune"
+        else:
+            raise ConfigurationException(f'train_word_embedding must be "freeze" or "tune"')
+
+    @staticmethod
     def parse_sentence_embedder_config(sentence_embedding_config_str: str) -> Literal["bow", "bilstm"]:
         if sentence_embedding_config_str == "bow":
             return "bow"
         elif sentence_embedding_config_str == "bilstm":
             return "bilstm"
         else:
-            raise ConfigurationException(f'sentence_embedder must be "glove" or "random"')
+            raise ConfigurationException(f'sentence_embedder must be "bow" or "bilstm"')
