@@ -1,33 +1,36 @@
 from torch.utils.data import Dataset
-from torch.nn.functional import pad
+from torch.nn.functional import one_hot, pad
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_tokens
 import torch
+import json
 
-def map_dict(path):
-    word2idx, idx = {}, 1
-    with open(path) as f:
-        for l in f:
-            line = l.split()
-            word = line[0]
-            word2idx[word] = idx
-            idx+=1
-    
-    return word2idx
+from test.test_end_to_end import OneHotLabels
 
 class DatasetQuestions(Dataset):
     """
     This extended class of Dataset facilitates the work of DataLoader for managing (eg. batching) the questions dataset.
     """
 
-    def __init__(self, filepath, tokenisation_rules, dict_path):
+    def __init__(self, filepath, tokenisation_rules, vocab_path):
         self.questions, self.classifications = load(filepath)
 
         # Map questions to tokenised questions
         self.tokenised_questions = list(map(lambda x: parse_tokens(x, tokenisation_rules), self.questions))
+        self.one_hot_labels = {}
+        f = open('../data/labels.json')
+        data = json.load(f)
+        for i in data:
+            self.one_hot_labels[i] = data[i]
 
-        self.embedding_map = map_dict(dict_path)
 
+        # self.one_hot_labels = OneHotLabels(self.classifications)
+        self.embedding_map = {}
+        idx = 1
+        with open(vocab_path) as file:
+            for line in file:
+                self.embedding_map[line.split()[0]] = idx
+                idx += 1
         self.longest_sequence = 0
 
     def __len__(self):
@@ -57,5 +60,5 @@ class DatasetQuestions(Dataset):
         # modify the batch by padding the sequences to match the size of the longest sequence
         for q, l in batch:
             qs.append(self.transform(q))
-            ls.append(l)
-        return (qs, ls)
+            ls.append(self.one_hot_labels[l])
+        return (qs, torch.LongTensor(ls))

@@ -3,7 +3,8 @@ import sys
 
 
 from sentence_classifier.utils.config import Config
-
+from sentence_classifier.utils.one_hot_encoding import OneHotEncoder
+from sentence_classifier.utils.vocab import VocabUtils
 from sentence_classifier.preprocessing.dataloading import DatasetQuestions
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.models.model import Model
@@ -124,9 +125,12 @@ if __name__ == "__main__":
 
     # -------------------------------------------------------------------- #
 
+    # VocabUtils.save_vocabs('../data/train.txt', '../data/vocabs.txt')
+
     # TODO: Handle the case when the argument is --test instead of --train
     # Load the dataset
-    train_dataset = DatasetQuestions(config.path_train, tokenisation_rules=tokenisation_rules, dict_path="../data/glove.small.txt")
+    train_dataset = DatasetQuestions(config.path_train, tokenisation_rules=tokenisation_rules, vocab_path='../data/vocabs.txt')
+    
     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
 
     # TODO: train the model etc.
