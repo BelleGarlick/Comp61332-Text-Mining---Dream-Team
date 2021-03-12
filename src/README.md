@@ -8,7 +8,7 @@ Requires python 3.8+
 ## running
 
 ```shell
-> python main.py --train --config ../data/config.ini
+> python question_classifier.py --train --config ../data/config.ini
 ```
 
 ## running tests
