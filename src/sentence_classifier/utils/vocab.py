@@ -1,8 +1,17 @@
 from typing import Set
 from collections.abc import Iterable
 
+from sentence_classifier.preprocessing.reader import load
+from sentence_classifier.preprocessing.tokenisation.tokeniser import parse_tokens
+
 
 class VocabUtils:
+
+    @staticmethod
+    def vocab_from_training_data(training_data_file_path: str) -> Set[str]:
+        questions, _ = load(training_data_file_path)
+        vocab = VocabUtils.vocab_from_text_corpus([parse_tokens(question) for question in questions])
+        return vocab
 
     @staticmethod
     def vocab_from_text_corpus(test_corpus: Iterable) -> Set[str]:

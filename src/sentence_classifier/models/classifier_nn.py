@@ -1,6 +1,7 @@
 import torch.nn as nn
-from torch import sigmoid
+from torch import sigmoid, log_softmax
 from torch.tensor import Tensor
+
 
 from typing import Optional
 
@@ -23,7 +24,7 @@ class ClassifierNN(nn.Module):
         x = self.fc2(x)
         x = sigmoid(x)
         x = self.fc3(x)
-        x = nn.functional.log_softmax(x, dim=1)
+        x = log_softmax(x, dim=1)
 
         return x
 
