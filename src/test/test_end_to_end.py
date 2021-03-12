@@ -7,6 +7,7 @@ import numpy as np
 
 from typing import List, Any, Generator, Tuple
 
+from sentence_classifier.analysis import roc
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.preprocessing.tokenisation import parse_tokens
 from sentence_classifier.models.model import Model
@@ -76,18 +77,12 @@ class EndToEndTest(TestCase):
         test_dataset_file_path = "../data/test.txt"
         test_questions, test_labels = load(test_dataset_file_path)
 
-        correct_predictions = 0
-        for count in range(len(test_questions)):
-            test_question = questions[count]
-            test_label = labels[count]
+        accuracy = roc.analyse(test_labels, [
+            one_hot_labels.label_for_idx(torch.argmax(test_model(parse_tokens(test_question))))
+            for test_question in test_questions
+        ])["f1"]
 
-            predicted_log_probabilities = test_model(parse_tokens(test_question))
-            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
-
-            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
-
-        accuracy = correct_predictions/len(test_questions)
-        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        print(f'End-to-end BOW Glove Frozen test accuracy: {accuracy * 100}%')
         self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
 
     def test_end_to_end_bilstm(self):
@@ -99,9 +94,9 @@ class EndToEndTest(TestCase):
                       .with_classifier(300)
                       .build())
 
-        lr = 0.1
+        lr = 0.001
         loss_fn = nn.NLLLoss(reduction="mean")
-        optimizer = torch.optim.SGD(test_model.parameters(), lr=lr)
+        optimizer = torch.optim.Adam(test_model.parameters(), lr=lr)
 
         training_data_file_path = "../data/train.txt"
         questions, labels = load(training_data_file_path)
@@ -124,18 +119,12 @@ class EndToEndTest(TestCase):
         test_dataset_file_path = "../data/test.txt"
         test_questions, test_labels = load(test_dataset_file_path)
 
-        correct_predictions = 0
-        for count in range(len(test_questions)):
-            test_question = questions[count]
-            test_label = labels[count]
+        accuracy = roc.analyse(test_labels, [
+            one_hot_labels.label_for_idx(torch.argmax(test_model(parse_tokens(test_question))))
+            for test_question in test_questions
+        ])["f1"]
 
-            predicted_log_probabilities = test_model(parse_tokens(test_question))
-            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
-
-            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
-
-        accuracy = correct_predictions / len(test_questions)
-        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        print(f'End-to-end BiLSTM Glove test accuracy: {accuracy * 100}%')
         self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
 
     def test_end_to_end_test_bow_random_embeddings(self):
@@ -149,9 +138,9 @@ class EndToEndTest(TestCase):
                       .with_classifier(300)
                       .build())
 
-        lr = 1e-1
+        lr = 0.002
         loss_fn = nn.NLLLoss(reduction="mean")
-        optimizer = torch.optim.SGD(test_model.parameters(), lr=lr)
+        optimizer = torch.optim.Adam(test_model.parameters(), lr=lr)
 
         training_data_file_path = "../data/train.txt"
         questions, labels = load(training_data_file_path)
@@ -176,19 +165,13 @@ class EndToEndTest(TestCase):
         test_dataset_file_path = "../data/test.txt"
         test_questions, test_labels = load(test_dataset_file_path)
 
-        correct_predictions = 0
-        for count in range(len(test_questions)):
-            test_question = questions[count]
-            test_label = labels[count]
+        accuracy = roc.analyse(test_labels, [
+            one_hot_labels.label_for_idx(torch.argmax(test_model(parse_tokens(test_question))))
+            for test_question in test_questions
+        ])["f1"]
 
-            predicted_log_probabilities = test_model(parse_tokens(test_question))
-            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
-
-            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
-
-        accuracy = correct_predictions / len(test_questions)
-        print(f'End-to-end test accuracy: {accuracy * 100}%')
-        self.assertTrue(accuracy >= 0.35)  # i.e assert at least 35% accuracy (due to frozen and random word-embeddings)
+        print(f'End-to-end BOW Not Glove test accuracy: {accuracy * 100}%')
+        self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
 
     def test_end_to_end_fine_tune_glove(self):
         torch.manual_seed(42)
@@ -227,16 +210,10 @@ class EndToEndTest(TestCase):
         test_dataset_file_path = "../data/test.txt"
         test_questions, test_labels = load(test_dataset_file_path)
 
-        correct_predictions = 0
-        for count in range(len(test_questions)):
-            test_question = test_questions[count]
-            test_label = test_labels[count]
+        accuracy = roc.analyse(test_labels, [
+            one_hot_labels.label_for_idx(torch.argmax(test_model(parse_tokens(test_question))))
+            for test_question in test_questions
+        ])["f1"]
 
-            predicted_log_probabilities = test_model(parse_tokens(test_question))
-            predicted_label = one_hot_labels.label_for_idx(torch.argmax(predicted_log_probabilities))
-
-            correct_predictions = correct_predictions + 1 if predicted_label == test_label else correct_predictions
-
-        accuracy = correct_predictions/len(test_questions)
-        print(f'End-to-end test accuracy: {accuracy * 100}%')
+        print(f'End-to-end BOW Glove non-frozen test accuracy: {accuracy * 100}%')
         self.assertTrue(accuracy >= 0.5)  # i.e assert at least 50% accuracy
