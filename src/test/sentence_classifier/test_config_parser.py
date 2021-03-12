@@ -19,6 +19,7 @@ class ConfigParserTest(TestCase):
                 "lr = 0.005\n",
                 "early_stopping = 20\n",
                 "word_embeddings = glove\n" if not bad_word_embedding else "",
+                "train_word_embeddings = freeze\n",
                 "path_word_embeddings =../data/glove.small.txt\n",
                 "word_embedding_dim = 300\n",
                 "sentence_embedder = bow\n" if not bad_sentence_embedder else "",

@@ -4,23 +4,24 @@ from torch import nn
 import torch
 
 
-from typing import Iterable, Dict, List
+from typing import Iterable, Dict, List, Optional
 
 
 class WordEmbeddings(nn.Module):
 
-    def __init__(self, vocab: Iterable[str], embeddings: List[torch.FloatTensor]):
+    def __init__(self, vocab: Iterable[str], embeddings: List[torch.FloatTensor], freeze: bool):
         super(WordEmbeddings, self).__init__()
 
         self.vocab = vocab
         self.word_idx_dict = self.construct_word_idx_dict(vocab)
-        self.embedding_layer = nn.Embedding.from_pretrained(torch.stack(embeddings))
+        self.embedding_layer = nn.Embedding.from_pretrained(torch.stack(embeddings), freeze=freeze)
 
     @staticmethod
-    def from_embeddings_file(embeddings_file_path: str) -> 'WordEmbeddings':
+    def from_embeddings_file(embeddings_file_path: str, freeze: Optional[bool] = True) -> 'WordEmbeddings':
         """
         Assumes that the embedding file is in tab-separated format, with words in the first column and
         embedding vectors in the second
+        :param freeze: freeze vs. fine-tune these embeddings
         :param embeddings_file_path:
         :return: a WordEmbeddings model/layer that uses the vocab and embeddings in the provided file
         """
@@ -36,19 +37,20 @@ class WordEmbeddings(nn.Module):
                 vocab.append(word)
                 pretrained_embeddings.append(float_str_to_float_tensor(line.split("\t")[1]))
 
-        return WordEmbeddings(vocab, pretrained_embeddings)
+        return WordEmbeddings(vocab, pretrained_embeddings, freeze)
 
     @staticmethod
-    def from_random_embedding(vocab: Iterable[str], emb_dim: int) -> 'WordEmbeddings':
+    def from_random_embedding(vocab: Iterable[str], emb_dim: int, freeze: Optional[bool] = True) -> 'WordEmbeddings':
         """
         This uses the provided vocab and creates randomly-initialised embeddings for each word
+        :param freeze: freeze vs. fine-tune these embeddings
         :param emb_dim:
         :param vocab:
         :return: a WordEmbeddings model/layer that uses the provided vocab with random
         """
 
         random_embeddings = [torch.FloatTensor(np.random.uniform(size=emb_dim)) for word in vocab]
-        return WordEmbeddings(vocab, random_embeddings)
+        return WordEmbeddings(vocab, random_embeddings, freeze)
 
     @staticmethod
     def construct_vocab_from_embeddings_file(embeddings_file_path: str) -> Iterable[str]:
@@ -114,6 +116,7 @@ def load_glove(path):
     glove = {w: vectors[word2idx[w]] for w in words}
 
     return glove, vectors[0].shape[0]
+
 
 def embed(sentences, embedding_path): 
     """
