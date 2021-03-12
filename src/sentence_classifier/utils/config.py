@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Optional, Literal
+from typing import List, Optional
+from typing import Literal  # TODO: requires python3.8+
 from configparser import ConfigParser
 from sentence_classifier.models.model import Model
 
@@ -26,11 +27,11 @@ class Config:
     lr: float
     path_eval_result: Optional[str]
 
-    word_embeddings: Literal["random", "glove"]
+    word_embeddings: Literal["random", "glove"]  # TODO: requires python3.8+, remove if Kilburn VMs don't support it
     path_word_embeddings: Optional[str]
     word_embedding_dim: Optional[int]
 
-    sentence_embedder: Literal["bow", "bilstm"]
+    sentence_embedder: Literal["bow", "bilstm"]  # TODO: requires python3.8+
     bilstm_input_dim: Optional[int]
     bilstm_hidden_dim: Optional[int]
 
