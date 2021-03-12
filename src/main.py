@@ -31,7 +31,10 @@ if __name__ == "__main__":
     parser.add_argument('--test', action='store_true', help='Run the code to test a model')
     parser.add_argument('--config', nargs='?', default='../data/config.ini')
     args = parser.parse_args(sys.argv[1:])
-    config = Config.from_config_file(args.config)
+    config_file = args.config
+
+    config = Config.from_config_file(config_file)
+    model = Config.build_model_from_config(config_file)
 
     # TODO: Handle the case when the argument is --test instead of --train
     # Load the dataset
@@ -39,6 +42,6 @@ if __name__ == "__main__":
     
     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=False, collate_fn=train_dataset.collate_fn)
 
+    # TODO: train the model etc.
     for q, l in train_loader:
         print(q, l)
-
