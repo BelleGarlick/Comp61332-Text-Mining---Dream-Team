@@ -23,6 +23,7 @@ one_hot_labels = OneHotLabels(Y)
 
 def train_model(model, loss_fn, optimizer, repeat, epochs=10):
     for epoch in range(epochs):
+        avg_loss = []
         for count in range(len(X)):
             model.train()
 
@@ -36,8 +37,10 @@ def train_model(model, loss_fn, optimizer, repeat, epochs=10):
             optimizer.step()
             optimizer.zero_grad()
 
+            avg_loss.append(loss.detach().numpy())
+
             print("\rExperiment: {}, Epochs: {}, Step: {}/{}, Loss: {}".format(
-                repeat + 1, epoch + 1, count + 1, len(X), loss.detach().numpy()
+                repeat + 1, epoch + 1, count + 1, len(X), np.mean(avg_loss)
             ), end="")
 
     return roc.analyse(test_Y, [
@@ -46,20 +49,20 @@ def train_model(model, loss_fn, optimizer, repeat, epochs=10):
     ])["f1"]
 
 
-def BOWModel():
-    return (Model.Builder()
-            .with_glove_word_embeddings("../data/glove.small.txt")
-            .with_bow_sentence_embedder()
-            .with_classifier(300)
-            .build())
-
-
-def BiLSTM():
-    return (Model.Builder()
-            .with_glove_word_embeddings("../data/glove.small.txt")
-            .with_bilstm_sentence_embedder(300, 300)
-            .with_classifier(300)
-            .build())
+def build_model(model_type="bow"):
+    if model_type == "bow":
+        return (Model.Builder()
+                .with_glove_word_embeddings("../data/glove.small.txt")
+                .with_bow_sentence_embedder()
+                .with_classifier(300)
+                .build())
+    elif model_type == "bilstm":
+        return (Model.Builder()
+                .with_glove_word_embeddings("../data/glove.small.txt")
+                .with_bilstm_sentence_embedder(300, 300)
+                .with_classifier(300)
+                .build())
+    raise Exception("Please specify a model from {'bow', 'bilstm'}")
 
 
 if __name__ == "__main__":
@@ -67,7 +70,7 @@ if __name__ == "__main__":
     for lr in [0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01]:
         results = []
         for repeat in range(REPEATS):
-            model = BiLSTM()
+            model = build_model("bilstm")
 
             loss_fn = nn.NLLLoss(reduction="mean")
             optimizer = torch.optim.Adam(model.parameters(), lr=lr)
