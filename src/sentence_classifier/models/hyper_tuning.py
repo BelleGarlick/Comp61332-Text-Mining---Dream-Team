@@ -6,7 +6,7 @@ from sentence_classifier.analysis import roc
 from sentence_classifier.models.model import Model
 from sentence_classifier.preprocessing.reader import load
 from sentence_classifier.preprocessing.tokenisation import parse_tokens
-from test.test_end_to_end import OneHotLabels
+from sentence_classifier.utils.one_hot_labels import OneHotLabels
 
 
 REPEATS = 5
@@ -14,11 +14,12 @@ CLASSES = 50
 
 TRAIN_FILE_PATH = "../data/train.txt"
 TEST_FILE_PATH = "../data/test.txt"
+LABELS_JSON_FILE = "../data/labels.json"
 
 X, Y = load(TRAIN_FILE_PATH)
 test_X, test_Y = load(TEST_FILE_PATH)
 
-one_hot_labels = OneHotLabels(Y)
+one_hot_labels = OneHotLabels.from_labels_json_file(LABELS_JSON_FILE)
 
 
 def train_model(model, loss_fn, optimizer, repeat, epochs=10):
