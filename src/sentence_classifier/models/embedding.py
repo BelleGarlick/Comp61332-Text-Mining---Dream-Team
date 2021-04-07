@@ -70,6 +70,7 @@ class WordEmbeddings(nn.Module):
 
         for idx, word in enumerate(vocab_set):
             word_idx_dict[word] = idx
+        word_idx_dict["#UNK#"] = idx + 1 if "#UNK#" not in word_idx_dict else word_idx_dict["#UNK#"]
 
         return word_idx_dict
 

@@ -20,7 +20,7 @@ class BiLSTM(nn.Module):
         # The LSTM takes word embeddings as inputs, and outputs hidden states
         # with dimensionality hidden_dim.
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, bidirectional=bidirectional)
-        self.hidden_state_combiner = self.hidden_state_adder_fn() if combine_hidden == "sum" else self.hidden_state_concat_fn
+        self.hidden_state_combiner = combine_hidden
         self.output_dim = hidden_dim*2 if bidirectional and combine_hidden != "sum" else hidden_dim
 
     @staticmethod
@@ -60,7 +60,7 @@ class BiLSTM(nn.Module):
         # reshaped = sentence_word_embeddings.view([1] + list(sentence_word_embeddings.size()))
         reshaped = sentence_word_embeddings
         output, (hn, cn) = self.lstm(reshaped)
-        final_hidden_state = self.hidden_state_combiner(hn)
+        final_hidden_state = self.hidden_state_adder_fn()(hn) if self.hidden_state_combiner == "sum" else self.hidden_state_concat_fn()(hn)
         return final_hidden_state
 
 
