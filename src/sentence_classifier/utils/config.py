@@ -109,7 +109,7 @@ class Config:
         if config.sentence_embedder == "bow":
             model_builder.with_bow_sentence_embedder()
         else:
-            model_builder.with_bilstm_sentence_classifier(config.bilstm_input_dim, config.bilstm_hidden_dim)
+            model_builder.with_bilstm_sentence_embedder(config.bilstm_input_dim, config.bilstm_hidden_dim)
 
         model_builder.with_classifier(config.classifier_input_dim)
 
